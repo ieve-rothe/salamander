@@ -1,0 +1,19 @@
+name: salamander
+version: 0.1.0
+
+authors:
+  - Cam <cam@example.com>
+
+dependencies:
+  mantle:
+    path: ../mantle
+  tts_kokoro:
+    path: ../tts_kokoro
+
+targets:
+  salamander:
+    main: src/salamander.cr
+
+crystal: 1.12.2
+
+license: MIT
