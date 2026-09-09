@@ -44,11 +44,13 @@ Salamander::Terminal.run(bot_name: "Emma", icon: "🐾") do |ui|
     
     ui.spin_while("Mantle is generating...") do
       # Integrate Mantle here!
-      # response = Mantle::Flow.run(user_input)
-      
+      # result = session.run_turn(user_input) do |chunk|
+      #   ui.stream_text(chunk)
+      # end
+
       # Simulate delay
       sleep 2.seconds
-      
+
       ui.clear_line
       ui.stream_text("Response from Mantle goes here.\n")
     end

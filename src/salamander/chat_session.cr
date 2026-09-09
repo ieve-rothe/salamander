@@ -34,22 +34,25 @@ module Salamander
       state_changed = false
       old_state = @state
 
+      has_think_open = chunk.includes?("<think>") || chunk.includes?("<|think|>")
+      has_think_close = chunk.includes?("</think>") || chunk.includes?("</|think|>")
+
       # -------------------- State Transitions --------------------
 
       # Transition: Evaluating → Thinking
-      if chunk.includes?("<|think|>")
+      if has_think_open
         @state = State::Thinking
         state_changed = true
       end
 
       # Transition: Thinking → Responding
-      if chunk.includes?("</|think|>") && @state != State::Responding
+      if has_think_close && @state != State::Responding
         @state = State::Responding
         state_changed = true
       end
 
       # Transition: Evaluating → Responding (no thinking block)
-      if @state == State::Evaluating && !chunk.includes?("<|think|>")
+      if @state == State::Evaluating && !has_think_open
         @state = State::Responding
         state_changed = true
       end
@@ -66,10 +69,17 @@ module Salamander
       case @state
       when .thinking?
         # Accumulate thinking content in memory (don't show in terminal)
-        @hidden_thinking_log << chunk
+        clean_think = chunk.gsub("<think>", "").gsub("<|think|>", "")
+        @hidden_thinking_log << clean_think
       when .responding?
-        # Strip closing tag if present (prevent </|think|> from appearing in output)
-        clean_content = chunk.gsub("</|think|>", "")
+        # Strip thinking blocks and closing tags if present (prevent tags from appearing in output)
+        clean_content = chunk
+          .gsub(/<think>[\s\S]*?<\/think>/, "")
+          .gsub(/<\|think\|>[\s\S]*?<\/\|think\|>/, "")
+          .gsub("</think>", "")
+          .gsub("</|think|>", "")
+          .gsub("<think>", "")
+          .gsub("<|think|>", "")
       end
 
       ProcessedChunk.new(

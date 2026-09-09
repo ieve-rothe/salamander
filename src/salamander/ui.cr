@@ -15,6 +15,7 @@ module Salamander
     
     @spinner_fiber : Fiber?
     @stop_channel : Channel(Nil)?
+    getter? spinning : Bool
 
     @@current : UI?
     
@@ -27,6 +28,7 @@ module Salamander
     def initialize(@waybar : WaybarNotifier, @tts : TtsKokoro::TTS? = nil, @voice_blend : String? = nil, @speed : Float64? = 1.0)
       @spinner_fiber = nil
       @stop_channel = nil
+      @spinning = false
       @@current = self
     end
 
@@ -92,6 +94,7 @@ module Salamander
     def start_spinner(default_message : String, state_getter : Proc(Symbol)? = nil)
       @stop_channel = Channel(Nil).new(1)
       stop_chan = @stop_channel.not_nil!
+      @spinning = true
 
       @spinner_fiber = spawn do
         begin
@@ -100,11 +103,15 @@ module Salamander
           last_state = nil
 
           loop do
+            break unless @spinning
+
             select
             when stop_chan.receive
               break
             when timeout(80.milliseconds)
             end
+
+            break unless @spinning
 
             current_state = state_getter ? state_getter.call : :evaluating
             break if current_state == :responding
@@ -132,20 +139,21 @@ module Salamander
           end
         rescue ex
           puts "UI spinner crashed: #{ex.message}"
+        ensure
+          @spinning = false
         end
       end
       sleep 10.milliseconds
     end
 
     def stop_spinner
+      @spinning = false
       if stop_chan = @stop_channel
-        spawn do
-          begin
-            stop_chan.send(nil)
-          rescue ex
-          end
-        end
         @stop_channel = nil
+        select
+        when stop_chan.send(nil)
+        else
+        end
       end
     end
 
