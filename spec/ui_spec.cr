@@ -41,4 +41,18 @@ describe Salamander::UI do
   it "handles clear_and_reposition without raising" do
     Salamander::UI.clear_and_reposition("Testing clear line\n")
   end
+
+  it "does not emit cursor up escape code for single-line text" do
+    io = IO::Memory.new
+    Salamander::UI.clear_and_reposition("Appreciate it. Ready for the next bead whenever you are.", io)
+    io.to_s.should eq("\r\e[J")
+    io.to_s.should_not contain("\e[0A")
+    io.to_s.should_not contain("\e[A")
+  end
+
+  it "emits cursor up escape code for multi-line text" do
+    io = IO::Memory.new
+    Salamander::UI.clear_and_reposition("Line 1\nLine 2\n", io)
+    io.to_s.should eq("\r\e[2A\e[J")
+  end
 end

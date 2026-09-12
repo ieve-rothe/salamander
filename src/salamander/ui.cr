@@ -167,16 +167,21 @@ module Salamander
       end
     end
 
-    def clear_and_reposition(text : String)
-      UI.clear_and_reposition(text)
+    def clear_and_reposition(text : String, io : IO = STDOUT)
+      UI.clear_and_reposition(text, io)
     end
 
-    def self.clear_and_reposition(text : String)
-      if STDOUT.tty?
+    def self.clear_and_reposition(text : String, io : IO = STDOUT)
+      is_tty = io.responds_to?(:tty?) && io.tty?
+      if is_tty || io.is_a?(IO::Memory)
         lines_to_clear = count_physical_lines(text)
         up_moves = [0, lines_to_clear - 1].max
-        print "\r\e[#{up_moves}A\e[J"
-        STDOUT.flush
+        if up_moves > 0
+          io.print "\r\e[#{up_moves}A\e[J"
+        else
+          io.print "\r\e[J"
+        end
+        io.flush
       end
     end
 
