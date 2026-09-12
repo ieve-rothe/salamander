@@ -4,6 +4,9 @@ require "colorize"
 require "tts_kokoro"
 require "./waybar"
 require "./menu"
+require "./ui/theme"
+require "./ui/panel"
+require "./ui/code_preview"
 
 module Salamander
   # The UI Toolbelt. Provides methods to interact with the user via terminal and TTS.
@@ -201,10 +204,34 @@ module Salamander
 
     def self.terminal_width : Int32
       ws = LibTerminal::Winsize.new
-      if LibTerminal.ioctl(1, LibTerminal::TIOCGWINSZ, pointerof(ws)) == 0
+      if LibTerminal.ioctl(1, LibTerminal::TIOCGWINSZ, pointerof(ws)) == 0 && ws.ws_col > 0
         ws.ws_col.to_i
       else
         80
+      end
+    end
+
+    def terminal_height : Int32
+      UI.terminal_height
+    end
+
+    def self.terminal_height : Int32
+      ws = LibTerminal::Winsize.new
+      if LibTerminal.ioctl(1, LibTerminal::TIOCGWINSZ, pointerof(ws)) == 0 && ws.ws_row > 0
+        ws.ws_row.to_i
+      else
+        24
+      end
+    end
+
+    def clear_screen
+      UI.clear_screen
+    end
+
+    def self.clear_screen
+      if STDOUT.tty?
+        print "\e[H\e[2J"
+        STDOUT.flush
       end
     end
 
