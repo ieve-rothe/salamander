@@ -26,10 +26,10 @@ class Salamander::UI
       slice.each_with_index do |l, idx|
         lnum = (start_offset + idx).to_s.rjust(4)
         gutter = "#{lnum} │ "
-        avail_code_w = Math.max(10, inner_w - gutter.size - 2)
+        avail_code_w = Math.max(10, inner_w - gutter.size)
         code_str = l
         if code_str.size > avail_code_w
-          code_str = code_str[0...(avail_code_w - 3)] + "..."
+          code_str = code_str[0...Math.max(0, avail_code_w - 3)] + "..."
         end
 
         formatted = "#{Theme::LINE_NO}#{lnum} │#{Theme::RESET} #{Theme::CODE_TEXT}#{code_str}#{Theme::RESET}"
@@ -38,7 +38,13 @@ class Salamander::UI
 
       if total > slice.size
         remaining = total - slice.size
-        msg = "#{Theme::NOTICE_DIM}... [#{remaining} more lines hidden; focus centered on active snippet] ...#{Theme::RESET}"
+        msg = if inner_w >= 65
+          "#{Theme::NOTICE_DIM}... [#{remaining} more lines hidden; focus centered on active snippet] ...#{Theme::RESET}"
+        elsif inner_w >= 40
+          "#{Theme::NOTICE_DIM}... [#{remaining} more lines hidden] ...#{Theme::RESET}"
+        else
+          "#{Theme::NOTICE_DIM}... [+#{remaining} lines] ...#{Theme::RESET}"
+        end
         out << panel.render_row(msg, border_color)
       end
 

@@ -185,7 +185,7 @@ module Salamander
       end
     end
 
-    # C bindings for terminal size detection
+    # C bindings for terminal size detection and Unicode display width
     lib LibTerminal
       {% if flag?(:linux) %}
         TIOCGWINSZ = 0x5413u32
@@ -201,6 +201,24 @@ module Salamander
       end
 
       fun ioctl(fd : LibC::Int, request : LibC::ULong, ...) : LibC::Int
+      fun setlocale(category : LibC::Int, locale : UInt8*) : UInt8*
+      fun wcwidth(c : LibC::Int) : LibC::Int
+    end
+
+    @@locale_initialized = false
+
+    def self.init_locale : Nil
+      return if @@locale_initialized
+      LibTerminal.setlocale(0, "") # LC_ALL
+      @@locale_initialized = true
+    end
+
+    def self.char_width(char : Char) : Int32
+      init_locale
+      ord = char.ord
+      return 0 if ord < 32 || (ord >= 0x7F && ord < 0xA0)
+      w = LibTerminal.wcwidth(ord)
+      w < 0 ? 1 : w
     end
 
     def terminal_width : Int32
@@ -209,11 +227,17 @@ module Salamander
 
     def self.terminal_width : Int32
       ws = LibTerminal::Winsize.new
-      if LibTerminal.ioctl(1, LibTerminal::TIOCGWINSZ, pointerof(ws)) == 0 && ws.ws_col > 0
-        ws.ws_col.to_i
-      else
-        80
+      [1, 0, 2].each do |fd|
+        if LibTerminal.ioctl(fd, LibTerminal::TIOCGWINSZ, pointerof(ws)) == 0 && ws.ws_col > 0
+          return ws.ws_col.to_i
+        end
       end
+
+      if env_cols = ENV["COLUMNS"]?.try(&.to_i?)
+        return env_cols if env_cols > 0
+      end
+
+      80
     end
 
     def terminal_height : Int32
@@ -222,11 +246,17 @@ module Salamander
 
     def self.terminal_height : Int32
       ws = LibTerminal::Winsize.new
-      if LibTerminal.ioctl(1, LibTerminal::TIOCGWINSZ, pointerof(ws)) == 0 && ws.ws_row > 0
-        ws.ws_row.to_i
-      else
-        24
+      [1, 0, 2].each do |fd|
+        if LibTerminal.ioctl(fd, LibTerminal::TIOCGWINSZ, pointerof(ws)) == 0 && ws.ws_row > 0
+          return ws.ws_row.to_i
+        end
       end
+
+      if env_lines = ENV["LINES"]?.try(&.to_i?)
+        return env_lines if env_lines > 0
+      end
+
+      24
     end
 
     def clear_screen
