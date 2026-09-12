@@ -30,4 +30,15 @@ describe Salamander::UI do
 
     ui.spinning?.should be_false
   end
+
+  it "computes terminal width and physical line counts" do
+    Salamander::UI.terminal_width.should be > 0
+    Salamander::UI.count_physical_lines("hello").should eq(1)
+    Salamander::UI.count_physical_lines("hello\nworld").should eq(2)
+    Salamander::UI.count_physical_lines("hello\nworld\n").should eq(3)
+  end
+
+  it "handles clear_and_reposition without raising" do
+    Salamander::UI.clear_and_reposition("Testing clear line\n")
+  end
 end

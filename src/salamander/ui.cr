@@ -165,6 +165,10 @@ module Salamander
     end
 
     def clear_and_reposition(text : String)
+      UI.clear_and_reposition(text)
+    end
+
+    def self.clear_and_reposition(text : String)
       if STDOUT.tty?
         lines_to_clear = count_physical_lines(text)
         up_moves = [0, lines_to_clear - 1].max
@@ -192,6 +196,10 @@ module Salamander
     end
 
     def terminal_width : Int32
+      UI.terminal_width
+    end
+
+    def self.terminal_width : Int32
       ws = LibTerminal::Winsize.new
       if LibTerminal.ioctl(1, LibTerminal::TIOCGWINSZ, pointerof(ws)) == 0
         ws.ws_col.to_i
@@ -201,10 +209,16 @@ module Salamander
     end
 
     def count_physical_lines(text : String) : Int32
+      UI.count_physical_lines(text)
+    end
+
+    def self.count_physical_lines(text : String) : Int32
       term_width = terminal_width
-      text.each_line.sum do |line|
+      lines = text.each_line.sum do |line|
         [1, (line.size.to_f / term_width).ceil.to_i].max
       end
+      lines += 1 if text.ends_with?('\n')
+      lines
     end
   end
 end
