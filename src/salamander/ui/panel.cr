@@ -10,8 +10,9 @@ class Salamander::UI
   # badges, dividers, and content rows.
   class Panel
     getter width : Int32
+    property box_style : BoxStyle
 
-    def initialize(@width : Int32)
+    def initialize(@width : Int32, @box_style : BoxStyle = BoxStyle::Rounded)
       @width = Math.max(20, @width)
     end
 
@@ -21,37 +22,67 @@ class Salamander::UI
     end
 
     # Renders the top border of the panel with a title and optional right-aligned badge
-    def render_header(title : String, badge : String? = nil, border_color : String = Theme::BORDER) : String
+    def render_header(title : String, badge : String? = nil, border_color : String = Theme::BORDER, style : BoxStyle? = nil) : String
+      active_style = style || @box_style
       inner_w = @width - 4
       raw_title_len = strip_ansi(title).size
       raw_badge_len = badge ? strip_ansi(badge).size + 1 : 0
       rem = Math.max(0, inner_w - raw_title_len - raw_badge_len)
 
-      if badge
-        "#{border_color}╭─#{Theme::RESET} #{title} #{border_color}#{"─" * rem}#{Theme::RESET} #{badge} #{border_color}╮#{Theme::RESET}"
+      tl, tr, fill = case active_style
+      when BoxStyle::Armored
+        {"╔═", "╗", "═"}
+      when BoxStyle::Sharp
+        {"┌─", "┐", "─"}
       else
-        "#{border_color}╭─#{Theme::RESET} #{title} #{border_color}#{"─" * rem}╮#{Theme::RESET}"
+        {"╭─", "╮", "─"}
+      end
+
+      if badge
+        "#{border_color}#{tl}#{Theme::RESET} #{title} #{border_color}#{fill * rem}#{Theme::RESET} #{badge} #{border_color}#{tr}#{Theme::RESET}"
+      else
+        "#{border_color}#{tl}#{Theme::RESET} #{title} #{border_color}#{fill * rem}#{tr}#{Theme::RESET}"
       end
     end
 
     # Renders a padded content row bounded by left and right borders
-    def render_row(content : String, border_color : String = Theme::BORDER) : String
+    def render_row(content : String, border_color : String = Theme::BORDER, style : BoxStyle? = nil) : String
+      active_style = style || @box_style
       inner_w = @width - 4
       raw_len = strip_ansi(content).size
       pad = Math.max(0, inner_w - raw_len)
-      "#{border_color}│#{Theme::RESET} #{content}#{" " * pad}#{border_color}│#{Theme::RESET}"
+      v = (active_style == BoxStyle::Armored) ? "║" : "│"
+      "#{border_color}#{v}#{Theme::RESET} #{content}#{" " * pad}#{border_color}#{v}#{Theme::RESET}"
     end
 
     # Renders a horizontal divider within the panel
-    def render_divider(border_color : String = Theme::BORDER) : String
+    def render_divider(border_color : String = Theme::BORDER, style : BoxStyle? = nil) : String
+      active_style = style || @box_style
       inner_w = @width - 4
-      "#{border_color}├#{"─" * (inner_w + 2)}┤#{Theme::RESET}"
+      dl, dr, fill = case active_style
+      when BoxStyle::Armored
+        {"╠", "╣", "═"}
+      when BoxStyle::Sharp
+        {"├", "┤", "─"}
+      else
+        {"├", "┤", "─"}
+      end
+      "#{border_color}#{dl}#{fill * (inner_w + 2)}#{dr}#{Theme::RESET}"
     end
 
     # Renders the bottom closing border of the panel
-    def render_footer(border_color : String = Theme::BORDER) : String
+    def render_footer(border_color : String = Theme::BORDER, style : BoxStyle? = nil) : String
+      active_style = style || @box_style
       inner_w = @width - 4
-      "#{border_color}╰#{"─" * (inner_w + 2)}╯#{Theme::RESET}"
+      bl, br, fill = case active_style
+      when BoxStyle::Armored
+        {"╚", "╝", "═"}
+      when BoxStyle::Sharp
+        {"└", "┘", "─"}
+      else
+        {"╰", "╯", "─"}
+      end
+      "#{border_color}#{bl}#{fill * (inner_w + 2)}#{br}#{Theme::RESET}"
     end
 
     # Strips ANSI escape sequences to compute exact visual column widths
