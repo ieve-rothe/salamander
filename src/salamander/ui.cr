@@ -227,15 +227,15 @@ module Salamander
     end
 
     def self.terminal_width : Int32
+      if env_cols = ENV["COLUMNS"]?.try(&.to_i?)
+        return env_cols if env_cols > 0
+      end
+
       ws = LibTerminal::Winsize.new
       [1, 0, 2].each do |fd|
         if LibTerminal.ioctl(fd, LibTerminal::TIOCGWINSZ, pointerof(ws)) == 0 && ws.ws_col > 0
           return ws.ws_col.to_i
         end
-      end
-
-      if env_cols = ENV["COLUMNS"]?.try(&.to_i?)
-        return env_cols if env_cols > 0
       end
 
       80
@@ -246,15 +246,15 @@ module Salamander
     end
 
     def self.terminal_height : Int32
+      if env_lines = ENV["LINES"]?.try(&.to_i?)
+        return env_lines if env_lines > 0
+      end
+
       ws = LibTerminal::Winsize.new
       [1, 0, 2].each do |fd|
         if LibTerminal.ioctl(fd, LibTerminal::TIOCGWINSZ, pointerof(ws)) == 0 && ws.ws_row > 0
           return ws.ws_row.to_i
         end
-      end
-
-      if env_lines = ENV["LINES"]?.try(&.to_i?)
-        return env_lines if env_lines > 0
       end
 
       24

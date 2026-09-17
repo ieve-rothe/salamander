@@ -38,6 +38,28 @@ describe Salamander::UI do
     Salamander::UI.count_physical_lines("hello\nworld\n").should eq(3)
   end
 
+  it "respects COLUMNS and LINES environment variables" do
+    orig_cols = ENV["COLUMNS"]?
+    orig_lines = ENV["LINES"]?
+    begin
+      ENV["COLUMNS"] = "42"
+      ENV["LINES"] = "19"
+      Salamander::UI.terminal_width.should eq(42)
+      Salamander::UI.terminal_height.should eq(19)
+    ensure
+      if orig_cols
+        ENV["COLUMNS"] = orig_cols
+      else
+        ENV.delete("COLUMNS")
+      end
+      if orig_lines
+        ENV["LINES"] = orig_lines
+      else
+        ENV.delete("LINES")
+      end
+    end
+  end
+
   it "handles clear_and_reposition without raising" do
     Salamander::UI.clear_and_reposition("Testing clear line\n")
   end
