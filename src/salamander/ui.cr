@@ -7,6 +7,7 @@ require "./menu"
 require "./ui/theme"
 require "./ui/panel"
 require "./ui/code_preview"
+require "./ui/editor"
 
 module Salamander
   # The UI Toolbelt. Provides methods to interact with the user via terminal and TTS.
