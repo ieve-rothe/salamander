@@ -186,6 +186,28 @@ module Salamander
       end
     end
 
+    def render_separator(label : String? = nil, width : Int32? = nil) : String
+      UI.render_separator(label, width)
+    end
+
+    def self.render_separator(label : String? = nil, width : Int32? = nil) : String
+      term_w = terminal_width
+      w = width || Panel.clamp_width(term_w)
+      border_color = Theme.border
+      reset = Theme::RESET
+
+      if label && !label.empty?
+        tag = "#{Theme.status_tag}#{label}#{reset}"
+        prefix = "─── "
+        prefix_vis_w = Panel.visual_width(prefix)
+        label_vis_w = Panel.visual_width(label)
+        rem = Math.max(0, w - prefix_vis_w - label_vis_w - 1)
+        "#{border_color}#{prefix}#{tag} #{border_color}#{"─" * rem}#{reset}"
+      else
+        "#{border_color}#{"─" * w}#{reset}"
+      end
+    end
+
     # C bindings for terminal size detection and Unicode display width
     lib LibTerminal
       {% if flag?(:linux) %}

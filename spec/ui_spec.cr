@@ -77,4 +77,23 @@ describe Salamander::UI do
     Salamander::UI.clear_and_reposition("Line 1\nLine 2\n", io)
     io.to_s.should eq("\r\e[2A\e[J")
   end
+
+  it "renders a horizontal separator with label and exact visual width" do
+    sep = Salamander::UI.render_separator(label: "Response", width: 50)
+    sep.should contain("Response")
+    sep.should contain(Salamander::UI::Theme.status_tag)
+    Salamander::UI::Panel.visual_width(sep).should eq(50)
+  end
+
+  it "renders a plain horizontal separator without label and exact visual width" do
+    sep = Salamander::UI.render_separator(width: 40)
+    sep.should_not contain("Response")
+    Salamander::UI::Panel.visual_width(sep).should eq(40)
+  end
+
+  it "renders separator using default clamped terminal width" do
+    expected_w = Salamander::UI::Panel.clamp_width(Salamander::UI.terminal_width)
+    sep = Salamander::UI.render_separator("Response")
+    Salamander::UI::Panel.visual_width(sep).should eq(expected_w)
+  end
 end
