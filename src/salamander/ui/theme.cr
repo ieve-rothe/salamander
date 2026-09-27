@@ -202,7 +202,41 @@ class Salamander::UI
       end
     end
 
-    @@current : BaseTheme = CyberpunkTheme.new
+    # Cupertino / Studio Dark - Apple-inspired minimalist design system
+    class CupertinoTheme < BaseTheme
+      def name : String; "cupertino"; end
+      def border : String; "\e[38;2;72;72;74m"; end           # Slate Graphite (#48484A)
+      def border_active : String; "\e[38;2;99;99;102m"; end   # System Zinc (#636366)
+      def border_danger : String; "\e[38;2;255;69;58m"; end   # Apple Coral Red (#FF453A)
+      def title : String; "\e[1;38;2;245;245;247m"; end       # Apple Crisp Snow (#F5F5F7)
+      def title_active : String; "\e[1;38;2;245;245;247m"; end # Apple Crisp Snow (#F5F5F7)
+      def user_prompt : String; "\e[1;38;2;255;255;255m"; end # Pure Crisp White (#FFFFFF)
+      def prompt_glyph : String; "\e[38;2;100;210;255m›\e[0m "; end # Subtle Sky Chevron
+      def thought : String; "\e[3;38;2;161;161;166m"; end     # Soft Titanium Italic (#A1A1A6)
+      def filename : String; "\e[1;38;2;245;245;247m"; end    # Pure High-Contrast White (#F5F5F7)
+      def success_icon : String; "\e[38;2;48;209;88m"; end    # Apple Mint Green (#30D158)
+      def error_icon : String; "\e[38;2;255;69;58m"; end      # Apple Coral Red (#FF453A)
+      def meta_dim : String; "\e[38;2;142;142;147m"; end      # Apple System Gray (#8E8E93)
+      def token_badge : String; "\e[38;2;142;142;147m"; end   # Subdued System Gray (no loud neon badge)
+      def line_no : String; "\e[38;2;99;99;102m"; end         # Muted Gutter (#636366)
+      def code_text : String; "\e[38;2;245;245;247m"; end     # Crisp Payload White
+      def code_bg : String; "\e[48;2;28;28;30m"; end          # Apple Dark Canvas (#1C1C1E)
+      def notice_dim : String; "\e[3;38;2;142;142;147m"; end  # Muted Notice
+      def status_tag : String; "\e[38;2;100;210;255m"; end    # Sky Blue Accent (#64D2FF)
+      def highlight : String; "\e[38;2;100;210;255m"; end     # Apple Sky Blue
+      def box_style : Salamander::UI::BoxStyle; Salamander::UI::BoxStyle::Rounded; end
+
+      def pill(key : String, label : String) : String
+        "\e[38;2;72;72;74m[\e[0m\e[1;38;2;245;245;247m#{key}\e[0m\e[38;2;72;72;74m]\e[0m \e[38;2;142;142;147m#{label}\e[0m"
+      end
+
+      def bracket_tag(category : String, value : String, color : String? = nil) : String
+        c = color || "\e[38;2;100;210;255m"
+        "\e[38;2;142;142;147m[\e[0m#{c}#{category}: #{value}\e[0m\e[38;2;142;142;147m]\e[0m"
+      end
+    end
+
+    @@current : BaseTheme = CupertinoTheme.new
 
     def current : BaseTheme
       @@current
@@ -213,11 +247,13 @@ class Salamander::UI
     end
 
     def all_names : Array(String)
-      ["cyberpunk", "outrun", "phosphor", "classic"]
+      ["cupertino", "apple", "sequoia", "cyberpunk", "outrun", "phosphor", "classic"]
     end
 
     def set_theme(name : String) : BaseTheme
       case name.downcase.strip
+      when "cupertino", "apple", "sequoia"
+        @@current = CupertinoTheme.new
       when "cyberpunk"
         @@current = CyberpunkTheme.new
       when "outrun"

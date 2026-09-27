@@ -2,18 +2,31 @@ require "../spec_helper"
 
 describe Salamander::UI::Theme do
   after_each do
-    Salamander::UI::Theme.set_theme("cyberpunk")
+    Salamander::UI::Theme.set_theme("cupertino")
   end
 
   it "lists all available theme names" do
     names = Salamander::UI::Theme.all_names
+    names.should contain("cupertino")
+    names.should contain("apple")
     names.should contain("cyberpunk")
     names.should contain("outrun")
     names.should contain("phosphor")
     names.should contain("classic")
   end
 
-  it "defaults to cyberpunk theme" do
+  it "defaults to cupertino theme" do
+    Salamander::UI::Theme.current.name.should eq("cupertino")
+    Salamander::UI::Theme.prompt_glyph.should contain("›")
+  end
+
+  it "switches to apple alias" do
+    Salamander::UI::Theme.set_theme("apple")
+    Salamander::UI::Theme.current.name.should eq("cupertino")
+  end
+
+  it "switches to cyberpunk theme" do
+    Salamander::UI::Theme.set_theme("cyberpunk")
     Salamander::UI::Theme.current.name.should eq("cyberpunk")
     Salamander::UI::Theme.prompt_glyph.should contain("❯❯")
   end
