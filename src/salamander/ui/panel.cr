@@ -32,7 +32,8 @@ class Salamander::UI
     end
 
     def self.strip_ansi(str : String) : String
-      str.gsub(/\e\[[0-9;]*[a-zA-Z]/, "")
+      safe_str = str.valid_encoding? ? str : str.scrub
+      safe_str.gsub(/\e\[[0-9;]*[a-zA-Z]/, "")
     end
 
     # Computes exact visual monospace column width, stripping ANSI and accounting for wide Unicode/emojis

@@ -23,11 +23,13 @@ module Salamander
       def format(text : String) : String
         return text if text.empty?
 
+        safe_text = text.valid_encoding? ? text : text.scrub
+
         # Step 1: Protect code blocks & inline code by extracting into placeholders
         code_blocks = [] of String
 
         # Extract triple-backtick code blocks first
-        extracted = text.gsub(CODE_BLOCK_REGEX) do
+        extracted = safe_text.gsub(CODE_BLOCK_REGEX) do
           content = $~[1]
           placeholder = "\x00CODE_BLOCK_#{code_blocks.size}\x00"
           code_blocks << "\e[48;5;236m#{content}\e[0m"

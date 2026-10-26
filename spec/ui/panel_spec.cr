@@ -66,4 +66,14 @@ describe Salamander::UI::Panel do
       Salamander::UI::Panel.strip_ansi(r).should end_with("│")
     end
   end
+
+  it "safely strips ANSI and calculates visual width on invalid non-UTF-8 bytes" do
+    invalid_bytes = Bytes[0x1b, 0x5b, 0x33, 0x32, 0x6d, 0x68, 0x69, 0x80, 0x1b, 0x5b, 0x30, 0x6d]
+    invalid_str = String.new(invalid_bytes)
+    invalid_str.valid_encoding?.should be_false
+
+    clean = Salamander::UI::Panel.strip_ansi(invalid_str)
+    clean.should eq("hi\uFFFD")
+    Salamander::UI::Panel.visual_width(invalid_str).should eq(3)
+  end
 end
