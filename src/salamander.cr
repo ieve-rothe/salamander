@@ -5,6 +5,7 @@ require "./salamander/waybar"
 require "./salamander/ui"
 require "./salamander/ui/markdown_formatter"
 require "./salamander/terminal"
+require "./salamander/fuzzy"
 
 module Salamander
   VERSION = "0.2.0"
