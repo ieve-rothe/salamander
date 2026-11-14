@@ -96,4 +96,20 @@ describe Salamander::UI do
     sep = Salamander::UI.render_separator("Response")
     Salamander::UI::Panel.visual_width(sep).should eq(expected_w)
   end
+
+  it "counts physical lines using visual width while ignoring ANSI escape codes" do
+    orig_cols = ENV["COLUMNS"]?
+    begin
+      ENV["COLUMNS"] = "10"
+      styled = "\e[38;5;240m12345678\e[0m"
+      Salamander::UI.count_physical_lines(styled).should eq(1)
+      Salamander::UI.count_physical_lines("#{styled}\n#{styled}").should eq(2)
+    ensure
+      if orig_cols
+        ENV["COLUMNS"] = orig_cols
+      else
+        ENV.delete("COLUMNS")
+      end
+    end
+  end
 end

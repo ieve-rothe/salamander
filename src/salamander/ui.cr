@@ -300,7 +300,8 @@ module Salamander
     def self.count_physical_lines(text : String) : Int32
       term_width = terminal_width
       lines = text.each_line.sum do |line|
-        [1, (line.size.to_f / term_width).ceil.to_i].max
+        vis_w = Panel.visual_width(line)
+        [1, (vis_w.to_f / term_width).ceil.to_i].max
       end
       lines += 1 if text.ends_with?('\n')
       lines
